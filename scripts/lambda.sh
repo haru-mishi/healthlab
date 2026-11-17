@@ -22,7 +22,8 @@ URL=https://main.$APP.amplifyapp.com/
 echo "BUCKET=$B"; echo "TOPIC_ARN=$T"; echo "APP_URL=$URL"
 
 read -rsp 'Gemini API key (hidden): ' KEY; echo
-[[ $KEY == AIza* ]] || { echo "the key should start with AIza"; exit 1; }
+# Fix
+[[ $KEY == AIza* ]] || [[ $KEY == AQ.* ]] || { echo "the key should start with AIza or AQ."; exit 1; }
 
 curl -sfLO https://raw.githubusercontent.com/haru-mishi/healthlab/main/dist/lambda.zip
 ENV="Variables={TABLE=HealthReports,BUCKET=$B,TOPIC_ARN=$T,APP_URL=$URL,GEMINI_API_KEY=$KEY}"
