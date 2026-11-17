@@ -23,8 +23,9 @@ echo "BUCKET=$B"; echo "TOPIC_ARN=$T"; echo "APP_URL=$URL"
 
 read -rsp 'Gemini API key (hidden): ' KEY; echo
 KEY=${KEY//[[:space:]]/}
-curl -sf -o /dev/null -H "x-goog-api-key: $KEY" https://generativelanguage.googleapis.com/v1beta/models \
-  || { echo "Gemini rejected this key: copy it again from aistudio.google.com/apikey"; exit 1; }
+code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -H "x-goog-api-key: $KEY" \
+  https://generativelanguage.googleapis.com/v1beta/models) || true
+[ "$code" = 200 ] || { echo "Gemini key check failed (HTTP $code). 400/403 = wrong key: copy it again from aistudio.google.com/apikey"; exit 1; }
 
 curl -sfLO https://raw.githubusercontent.com/haru-mishi/healthlab/main/dist/lambda.zip
 ENV="Variables={TABLE=HealthReports,BUCKET=$B,TOPIC_ARN=$T,APP_URL=$URL,GEMINI_API_KEY=$KEY}"

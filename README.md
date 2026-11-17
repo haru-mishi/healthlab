@@ -450,7 +450,7 @@ bash <(curl -sL https://raw.githubusercontent.com/haru-mishi/healthlab/main/scri
 |---|---|
 | Lambda error `Unable to import module 'lambda_function'` | ยังไม่ได้รัน `lambda.sh` (5.3) หรือรันไม่จบ → รันใหม่ได้เลย รันซ้ำกี่ครั้งก็ได้ |
 | `lambda.sh` ขึ้น `healthlab-… not found` / `no bucket` / `no SNS topic` / `no Amplify app` | ยังไม่ได้สร้างสิ่งนั้น หรือตั้งชื่อไม่ตรงตาราง [ชื่อ resource](#3-ไฟล์ในโปรเจกต์-และชื่อ-resource) |
-| `lambda.sh` ขึ้น `Gemini rejected this key` | วาง key ไม่ครบหรือ key ถูกลบ · คัดลอก key จาก AI Studio ใหม่แล้วรันอีกครั้ง |
+| `lambda.sh` ขึ้น `Gemini key check failed (HTTP …)` | 400/403 = วาง key ไม่ครบหรือ key ถูกลบ · คัดลอก key จาก AI Studio ใหม่แล้วรันอีกครั้ง · 000 = เน็ตหลุด · 429/5xx = Google ไม่ว่าง รอสักครู่แล้วรันใหม่ |
 | status ค้าง `PROCESSING` / ไม่มี item ใน DynamoDB | S3 trigger ไม่ทำงาน → ตรวจ 6.1: bucket ถูก, prefix `uploads/`, ไฟล์อยู่ใต้ `uploads/` · ดู log ที่ Lambda → Monitor → View CloudWatch logs |
 | status = `ERROR` | ดู log analyzer · `Gemini HTTP 400/403` = `GEMINI_API_KEY` ผิด · `429` = โควตาเต็ม รอ 1 นาที · `Task timed out after 3.00 seconds` = ยังไม่ได้รัน `lambda.sh` (5.3) |
 | `AccessDenied` ตอนสร้าง role / เลือก role ไม่ได้ | Learner Lab สร้าง role ไม่ได้ — ใช้ **LabRole** เท่านั้น |
