@@ -23,9 +23,15 @@ echo "BUCKET=$B"; echo "TOPIC_ARN=$T"; echo "APP_URL=$URL"
 
 read -rsp 'Gemini API key (hidden): ' KEY; echo
 KEY=${KEY//[[:space:]]/}
-code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -H "x-goog-api-key: $KEY" \
-  https://generativelanguage.googleapis.com/v1beta/models) || true
-[ "$code" = 200 ] || { echo "Gemini key check failed (HTTP $code). 400/403 = wrong key: copy it again from aistudio.google.com/apikey"; exit 1; }
+# Test the key with the same call the Lambda makes (generateContent on gemini-2.5-flash, x-goog-api-key),
+# never by its prefix or another endpoint: AI Studio keys can start with AIza or AQ., and only this call matters.
+# 1 output token, no thinking: costs one tiny request. 429 = key is valid but rate limited right now.
+out=$(curl -s -w '\n%{http_code}' --max-time 30 -H "x-goog-api-key: $KEY" -H 'Content-Type: application/json' \
+  -d '{"contents":[{"parts":[{"text":"ping"}]}],"generationConfig":{"maxOutputTokens":1,"thinkingConfig":{"thinkingBudget":0}}}' \
+  https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent) || true
+code=${out##*$'\n'}
+[ "$code" = 200 ] || [ "$code" = 429 ] || { echo "Gemini key check failed (HTTP $code: $(printf '%s' "${out%$'\n'*}" | jq -r '.error.message // empty' 2>/dev/null || true)). 400/401/403 = wrong key: copy it again from aistudio.google.com/apikey"; exit 1; }
+echo "Gemini key OK (HTTP $code)"
 
 curl -sfLO https://raw.githubusercontent.com/haru-mishi/healthlab/main/dist/lambda.zip
 ENV="Variables={TABLE=HealthReports,BUCKET=$B,TOPIC_ARN=$T,APP_URL=$URL,GEMINI_API_KEY=$KEY}"
